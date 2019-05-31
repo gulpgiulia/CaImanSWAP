@@ -935,8 +935,10 @@ end
 % Saves the array in a 'BeginTime.txt' file in the path folder
 BeginTime = [];
 EndTime = [];
-BeginTimeFile = [DataDir strcat('BeginTime_', topo, '_t', num2str(num),'.txt')]
-EndTimeFile = [DataDir strcat('EndTime_', topo, '_t', num2str(num),'.txt')];
+%BeginTimeFile = [DataDir strcat('BeginTime_', topo, '_t', num2str(num),'.txt')]
+BeginTimeFile = [DataDir strcat('BeginTime.txt')];
+%EndTimeFile = [DataDir strcat('EndTime_', topo, '_t', num2str(num),'.txt')];
+EndTimeFile = [DataDir strcat('EndTime.txt')];
 F = fopen(BeginTimeFile, 'wt');
 G = fopen(EndTimeFile, 'wt');
 % Check Begin and End Times files are properly opened
