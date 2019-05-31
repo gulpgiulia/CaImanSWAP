@@ -1,11 +1,8 @@
 # CaImanSWAP
 CaImanSWAP: Analysis Pipeline for Optical Data (wide-field fluorescence microscopy + calcium imaging)
 
---------------
-| CaImanSWAP |
--------------- 
-
 ------------------------------ INTRODUCTION ------------------------------
+
 CaImanSWAP (Calcium-Imaging Slow Waves Analysis Pipeline) is the analysis pipeline for the identification of the slow-wave activity (delta band, [0.5-4.0] Hz) in Ca-Imaging datasets, as the images obtained with wide-field fluorescence microscopy on transgenic mouse model expressing a calcium indicator.
 
 The program was originally developed by Marco Celotto, Chiara De Luca and Paolo Muratore within the WaveScalEs project (HBP-SP3) under the supervision of Pier Stanislao Paolucci and Giulia De Bonis (Istituto Nazionale di Fisica Nucleeare, INFN Rome, Italy), and applied to datasets produced by Francesco Resta and Anna Letizia Allegra Mascaro (HBP-SP1) using the LENS facilities (European Laboratory for Non-linear Spectroscopy, University of Florence, Italy) on GCaMP6f mouse model.
@@ -14,6 +11,7 @@ Further details in arXiv:1811.11687 [q-bio.NC].
 The Human Brain Project HBP has received funding from the European Union's Horizon 2020 Framework Programme for Research and Innovation under the Specific Grant Agreements No. 785907 (Human Brain Project SGA2). HBP-SP1 is the sub-projects devoted to Mouse Brain Organization; HBP-SP3 is the sub-project devoted to Systems and Cognitive Neuroscience.  
 
 ---------------------- STRUCTURE OF THE PROGRAM --------------------------
+
 Except for where differently specified, the code is written in Python2.7
 
 #ATTENTION: To correctly execute the program, the user should not modify the directory structure that the code automatically generates to process the data.
@@ -28,9 +26,9 @@ The program is made up of 4 phases:
   4) Data_analysis.py: In this phase, the following measures are taken on the identified collection of waves: excitability of the neuronal population (represented both as a distribution and as a cortical map), speed of waves and origin of waves; results are saved in the RESULTS directory.
 
 -------------------------- PROGRAM USAGE --------------------------------
-_____________________
-SETTINGS (SetData.py)
----------------------
+
+**SETTINGS (SetData.py)**
+
 The preliminary step to use the program is to compile the script 'SetData.py' that contains all the parameters relevant to the analysis.
 NOTE: the names of variables in this script are the actual names used in the code, please do not modify them in the script. 
 
@@ -53,9 +51,8 @@ NOTE: the names of variables in this script are the actual names used in the cod
       highcut = [[1.9], [None], None, [1.0, 1.3]]
       zone = [['Zone_1'], ['Zone_1'], None, ['Zone_2', 'Zone_3']]
 
-_____________________________
-EXAMPLE EXECUTION (Linux/IOS)
------------------------------
+**EXAMPLE EXECUTION (Linux/IOS)**
+
 cd PYTHON
 <edit SetData.py>
 python2 Image_initialization.py
