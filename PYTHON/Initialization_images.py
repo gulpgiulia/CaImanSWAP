@@ -23,7 +23,7 @@ def Make_a_rectangoular_crop(img_collection, topx, topy, bottomx, bottomy):
 
 
 def drawShape(img, coordinates, color):
-        #This function drows all contours founded on the mask
+        # This function draws all contours founded on the mask
         # In order to draw our line in red
     #img = skimage.color.gray2rgb(img)
 
@@ -49,7 +49,7 @@ def Contours_printing(img_float, contours):
     ax.axis('image')
     ax.set_xticks([])
     ax.set_yticks([])
-    plt.show()
+    plt.show(block=False)
 
         #Create a Black mask of the same dimentions of the image
     mask = np.zeros_like(img_float) # Create mask where white is what we want, black otherwise
@@ -76,17 +76,14 @@ def Find_Contours(img, Contour_Limit):
     gap = 0.001
     flag = 0
 
-
-
     total = 0
     inside = 0
-    #contour computing
+    # Computing the contour lines...
     contour_fake = measure.find_contours(img, Contour_Limit)
-    #selezione del contorno piu'0 grande
+    # Select the largest contour lines
     for i in range(0,len(contour_fake)):
         if (len(contour_fake[i])> len(contour_fake[max_index])):
             max_index = i
-
     #print len(contour_fake)
 
     contour = [contour_fake[max_index]]
@@ -112,7 +109,7 @@ def Find_Contours(img, Contour_Limit):
             appoggio_ver = 1
     if (appoggio_down == 1 and appoggio_dx == 1) or (appoggio_up == 1 and appoggio_sx == 1) or (appoggio_down== 1 and appoggio_sx == 1) or (appoggio_up == 1 and appoggio_dx == 1):
         snd = True
-    print snd
+    print 'snd =', snd
 
     #print snd
 
@@ -129,17 +126,17 @@ def Find_Contours(img, Contour_Limit):
         for i in range(0, len(contour_fake[snd_index])):
             contour[0] = np.append(contour[0], [contour_fake[snd_index][i]], axis = 0)
 
-    print 'Here there are contours found witha ContourLimit = %s' % str(Contour_Limit)
+    print 'Here (Figure 2) there are contours found with Contour_Limit = %s' % str(Contour_Limit)
 
     return contour
 
 #------------------------------------------------------------------------------
 
 def Find_a_mask(img_collection, Contour_Limit):
-    #This function finds and drows contures of an image given.
+    #This function finds and draws contours for a given image.
     #It returns the cropped image as a numpy array of float
 
-        # Find contours the best Contour_Limit for the first image of the serie
+    # Find contours the best Contour_Limit for the first image of the series
     contours = Find_Contours(img_collection[0], Contour_Limit)
     Contours_printing(img_collection[0], contours)
     return(contours)
