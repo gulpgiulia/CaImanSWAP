@@ -16,17 +16,20 @@ import SetData
 DIM_X = int(SetData.DIM_X/SetData.MACRO_PIXEL_DIM)
 DIM_Y = int(SetData.DIM_Y/SetData.MACRO_PIXEL_DIM)
 
-#check a directory 'Results' exists inside file_dati. Eventually create one.
-if os.path.exists(SetData.ANALYSIS_DIR  + 'RESULTS/')== False:
-    os.makedirs(SetData.ANALYSIS_DIR +'RESULTS/')
-if os.path.exists(SetData.ANALYSIS_DIR +'RESULTS/'+SetData.IMG_TYPE +'/') == False:
-    os.makedirs(SetData.ANALYSIS_DIR +'RESULTS/'+SetData.IMG_TYPE +'/')
+# Check if a directory for 'Results' exists; if note, create it
+#if os.path.exists(SetData.ANALYSIS_DIR  + 'RESULTS/')== False:
+#    os.makedirs(SetData.ANALYSIS_DIR +'RESULTS/')
+#if os.path.exists(SetData.ANALYSIS_DIR  + SetData.IMG_TYPE +'data_analysis/')== False:
+#    os.makedirs(SetData.ANALYSIS_DIR  + SetData.IMG_TYPE +'data_analysis/')
+#if os.path.exists(SetData.ANALYSIS_DIR +'RESULTS/'+SetData.IMG_TYPE +'/') == False:
+#    os.makedirs(SetData.ANALYSIS_DIR +'RESULTS/'+SetData.IMG_TYPE +'/')
 
-#dovremmo fare il loading di lowcut e highcut
+ResultsDir = SetData.ANALYSIS_DIR  + SetData.IMG_TYPE +'data_analysis/'
+if os.path.exists(ResultsDir)== False:
+    os.makedirs(ResultsDir)
+print 'ResultsDir: ', ResultsDir
 
-#e definire un array zone elem contenente i nomi di tutte le possibili zone
 #-------------------------------------------------------------------------------
-
 def excitability(params, exc, height, width, im_grid):
     #excitability = []
     # Here we define the image grid
@@ -43,7 +46,7 @@ def excitability(params, exc, height, width, im_grid):
 
 
     return exc, im_grid
-
+#------------------------------------
 def readParams(filename):
     pix = []
 
@@ -58,7 +61,7 @@ def readParams(filename):
 
     file.close()
     return pix
-
+#------------------------------------
 # Stack Overflow algorithms
 def bisection(array,value):
 
@@ -82,13 +85,13 @@ def bisection(array,value):
         return n-1
     else:
         return jl
-
+#------------------------------------
 def min_to_txt(min_time, path):
     file = open(path + 'min_time.txt', 'w')
     for i in range(0, len(min_time)):
         file.write(str(i) + ' ' + str(min_time[i]) + '\n')
     file.close()
-
+#------------------------------------
 def lowhigh_loading():
     print 'Lowcut and highcut loading...'
     lowcut_tot = []
@@ -98,9 +101,11 @@ def lowhigh_loading():
         SET_NUMBER = str(set)
         print'set=' + SET_NUMBER
         #np_data = np.zeros(10)
-        filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/' + 'low_high.txt'
+        filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/' + 'low_high.txt'
         if os.path.isfile(filename)== False:
-            sys.exit('ERROR: low_high does not exists' )
+            print('ERROR: low_high file does not exist. EXIT')
+            sys.exit()
+            #sys.exit('ERROR: low_high does not exists' )
         np_data = np.genfromtxt(filename, delimiter=';',comments= '#', dtype = str)
         lowcut_set = np_data[0][0].split(',')
         highcut_set = np_data[1][0].split(',')
@@ -141,15 +146,12 @@ def lowhigh_loading():
     return lowcut_tot, highcut_tot, zone_tot
 #===============================================================================
 
-#-------------------------------------------------------------------------------
-                                #EXCITABILITY
-#-------------------------------------------------------------------------------
-
 def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
 
     print 'Computing ' + z + '...'
-    #create the directory where results are going to be saved
-    SavePath = SetData.ANALYSIS_DIR +'RESULTS/' + SetData.IMG_TYPE + '/' + z + '/'
+    # Create the directory where results are going to be saved
+    #SavePath = SetData.ANALYSIS_DIR +'RESULTS/' + SetData.IMG_TYPE + '/' + z + '/'
+    SavePath = ResultsDir
     if not os.path.exists(SavePath):
         os.makedirs(SavePath)
 
@@ -170,21 +172,24 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
 
             if zone_tot[index][elem] == z:
                 #print 'entrato'
-                #Excitability computation loading the file params where fitting paramiters are saved
+                # Computation of the excitability loading the file params where fit parameters are saved
                 SET_NUMBER = str(set)
                 lowcut = lowcut_tot[index][elem]
                 highcut = highcut_tot[index][elem]
-                #============================EXCITABILIY============================
+                #============================ EXCITABILIY ============================
                 #print '         computing  exictability ...'
                 #params loading...
-                filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']'+'.txt'
+                #filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']'+'.txt'
+		filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params.txt'
+                print 'File with parameters: ', filename
 
-                if os.path.isfile(filename)== False:
-                    sys.exit('ERROR: params does not exists')
+                if os.path.exists(filename)== False:
+		    print('ERROR: params file does not exist. EXIT')
+                    sys.exit()
 
                 params = readParams(filename)
 
-                #computing excitability
+                # Computing excitability
                 exc_temp, im_grid_exc_temp = excitability(params, exc, DIM_X, DIM_Y, im_grid_exc)
                 exc += exc_temp
                 im_grid_exc += im_grid_exc_temp
@@ -192,15 +197,17 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
                 #im_grid_exc = im_grid_exc/np.nanmax(im_grid_exc[:,:])
                 #elem += 1
 
-                #===============================WAVE SURCE==========================
+                #=============================== ORIGIN of WAVES ==========================
                 #print '         waves surce computing... '
                 #variables initialization
                 #image grid is re-initialized
 
                 #min_points loading
-                filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+                filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points.txt'
+                print 'File with min_points: ', filename
                 if os.path.isfile(filename)== False:
-                    sys.exit('ERROR: min_points does not exists' )
+                    print('ERROR: min_points file does not exist. EXIT')
+                    sys.exit()
 
                 # Here we load the file
                 with open(filename) as f:
@@ -263,10 +270,13 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
                 del up_idx
 
                 # Here we manually define a set of time for wave segmentation
-                #Begin time loading
-                timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'BeginTime_' + SetData.IMG_TYPE + '_t' + str(set)  + '.txt'
+                # Loading BeginTime.txt
+                #timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'BeginTime_' + SetData.IMG_TYPE + '_t' + str(set)  + '.txt'
+                timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'BeginTime.txt'
                 if os.path.isfile(filename)== False:
-                    sys.exit('ERROR: BeginTime does not exists' )
+                    print('ERROR: BeginTime file does not exist. EXIT')
+                    sys.exit() 
+                    #sys.exit('ERROR: BeginTime does not exists' )
                 #loading
                 f = open(timefile, 'r')
                 wave_times = []
@@ -297,10 +307,12 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
                 #===========================WAVE VELOCITY===========================
                 #print '         waves velocity computing...'
                 #load end_times of each wave
-                #end times loading
-                timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + '/EndTime_' + SetData.IMG_TYPE + '_t' + str(set) + '.txt'
+                # Loading of EndTime
+                #timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + '/EndTime_' + SetData.IMG_TYPE + '_t' + str(set) + '.txt'
+                timefile = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + '/EndTime.txt'                
                 if os.path.isfile(filename)== False:
-                    sys.exit('ERROR: EndTime does not exists' )
+                    print('ERROR: EndTime file does not exist. EXIT')
+                    sys.exit()
 
                 end_times = []
                 f = open(timefile, 'r')
@@ -379,7 +391,8 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
     plt.rc('font', family = 'serif')
     plt.Normalize()
     plt.imshow(im_grid_exc, cmap='plasma')
-    name_fig = SetData.IMG_TYPE + '_' + z
+    #name_fig = SetData.IMG_TYPE + '_' + z
+    name_fig = z
     title_fig = 'ExcitabilityMap'
     plt.colorbar()
     #plt.title(title_fig)
@@ -403,7 +416,8 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
         histogram[i] = hist[i]
     plt.close()
     plt.bar(bins, histogram/np.max(hist), width=(b-a)/50,  color = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + z
+    #name_fig = SetData.IMG_TYPE + '_' + z
+    name_fig = z
     title_fig = 'Excitability'
     #plt.title(title_fig)
     #plt.suptitle(name_fig, fontsize=16)
@@ -425,7 +439,8 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
     plt.rc('font', family = 'serif')
     plt.imshow(im_grid, cmap='plasma')
     #plt.Normalize(vmin = -1, vmax = 1)
-    name_fig = SetData.IMG_TYPE + z
+    #name_fig = SetData.IMG_TYPE + z
+    name_fig = z
     title_fig = 'Waves_origin'
     plt.colorbar()
     #plt.title(title_fig)
@@ -454,7 +469,8 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
     plt.bar(bins, histogram/np.max(hist), width=(b-a)/50,  color = SetData.color)
     plt.ylabel('Number of waves')
     plt.xlabel('v(mm/s)')
-    name_fig = SetData.IMG_TYPE + z
+    #name_fig = SetData.IMG_TYPE + z
+    name_fig = z    
     title_fig = 'Waves_Velocity'
     name_saved = SavePath + title_fig + '_' + name_fig + '.pdf'
     plt.savefig(name_saved)
@@ -486,17 +502,24 @@ def Data_analysis(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y):
     del modulo_vel, exc
     return 0
 
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
 
-#loading lowcut, highcut and zone
+# -------- Load passband parameters (lowcut, highcut, zone) ---------
 lowcut_tot, highcut_tot, zone_tot = lowhigh_loading()
-#creating zone_elem
+# Create zone_elem
 zone_elem = []
 
+# ... for each spectrum zone to be analyzed:
 for set in range(0,len(zone_tot)):
     for elem in zone_tot[set]:
         if not elem in zone_elem:
             zone_elem.append(elem)
 
+# ---------------------------- DATA ANALYSIS ------------------------
 #Data_analysis('Zone_2', lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y)
 Parallel(n_jobs=SetData.nprocs)(delayed(Data_analysis)(z, lowcut_tot, highcut_tot, zone_tot, DIM_X, DIM_Y) for z in zone_elem)
 #sys.stdout.write = LogFile('memory_profile_log')
+
+print 'Data Analysis completed!'
+
