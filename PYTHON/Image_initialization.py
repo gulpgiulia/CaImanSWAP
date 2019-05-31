@@ -1,29 +1,38 @@
-#Update 11.10.2018
-#This is a program able to recognize the interesting part of the image,
-#masking all the un-neaded and perfoming a spacial smoothing.
-#An input from the user is required. Look up to the README for more information.
+#!/usr/bin/python2
+#--------1---------2---------3---------4---------5---------6---------7--------X
+#  Last Update: 18.04.2019
+#  Version: 1.0 (11.10.2018)
+#--------1---------2---------3---------4---------5---------6---------7--------X
+# 'Image_initialization' is a program to identify the interesting part of an 
+# image, masking all the un-needed; 
+# in addition, it performs background subtraction and spacial smoothing. 
+# An input from the user is required - see the README file for more information.
 
-#needed libreries
+#------------------------------------ IMPORT -----------------------------------
 import os
 import sys, getopt
-import numpy as np
 import importlib
+
+import numpy as np
+
 from pylab import *
+import matplotlib.pyplot as plt
+
 from scipy.signal import butter, lfilter, filtfilt, freqz
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
 
 import skimage
 from skimage import data, io, filters, measure
 from skimage import img_as_float, img_as_uint
 
-from Initialization_images import drawShape, Make_a_rectangoular_crop, Find_a_mask, Apply_a_mask, Inside_outside_check
 from joblib import Parallel, delayed
+
+from Initialization_images import drawShape, Make_a_rectangoular_crop, Find_a_mask, Apply_a_mask, Inside_outside_check
 
 import SetData
 
-#------------------------------PARAMETER DEFINITION-----------------------------
-print '----------------------------------Initialization images...------------------------------------'
+#----------------------------- DEFINITION of PARAMETERS ---------------------------
+print '---------------------------------- Image initialization ------------------------------------'
 print 'Initializing images...'
 
 #checking path
@@ -35,7 +44,7 @@ for index, set in enumerate(SetData.num_measures):
     SET_NUMBER = str(set)
 
     #---------------------------------------------------------------------------
-    #here we search for the interesting part of the image. We study the first image of the whole set
+    # Here we search for the interesting part of the image. We study the first image of the whole set
     img_path = SetData.DATA_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/'+ SetData.IMG_NAME + SET_NUMBER + '_' + str(SetData.TIME_MIN) + SetData.EXTENSION
 
     if os.path.exists(img_path) == False:
@@ -45,19 +54,20 @@ for index, set in enumerate(SetData.num_measures):
     print "         Finding contours..."
 
     #Find contours
-    print "         We want to select the interesting part of the image.\n We hava inplemented this search by the function measure.find_contours of the scikit image packageself."
-    print "         In order to do so, we need you to input the Contour_Limit parameter"
-    print "         Visit http://scikit-image.org/docs/0.8.0/api/skimage.measure.find_contours.html for more information"
+    print "         We want to select the interesting part of the image (Figure 1).\n We have implemented this search using the function 'measure.find_contours' of the scikit-image package: image processing in Python, https://scikit-image.org"
+    print "         In order to do so, we need you to input the Contour_Limit parameter."
+    print "         Visit http://scikit-image.org/docs/0.8.0/api/skimage.measure.find_contours.html for more information."
 
     img_float = img_as_float(io.imread_collection(img_path))
     #show the image row
     plt.imshow(img_float[0])
-    plt.show()
-    plt.close()
+    plt.show(block=False)
+    #plt.show()
+    #plt.close()
 
     if SetData.Contour_Limit[index] == None:
         answer = 'Y'
-        #the porogram takes in input the Contour_LImit value
+        #the program takes in input the Contour_Limit value
         while answer == 'Y':
             Contour_Limit = input('Contour_Limit:')
             contours = Find_a_mask(img_float, Contour_Limit)
@@ -74,9 +84,7 @@ for index, set in enumerate(SetData.num_measures):
     del img_float
     print '         Mask has been found!'
 
-
     #-------------------------------------------------------------------------------
-
     print '         Loading data...'
     img_path_list = []
     for i in range(SetData.TIME_MIN, SetData.TIME_MAX + 1):
@@ -88,7 +96,8 @@ for index, set in enumerate(SetData.num_measures):
     print '         Data loaded!'
     #print img_path_list
 
-    #ERRORE DA QUI
+    #-------------------------------------------------------------------------------
+    print '         Applying mask to data...'
     def Image_loading(img_path):
         # Load all the collection of the images
         img_DOWN = np.zeros((SetData.DIM_X, SetData.DIM_Y))
@@ -111,14 +120,14 @@ for index, set in enumerate(SetData.num_measures):
     Y_train = []
 
     img_collection_DOWN.extend(Parallel(n_jobs=SetData.nprocs)(delayed(Image_loading)(img_path) for img_path in img_path_list))
+    print '         Mask applied!'
 
-
-    print '         Evaluateing backgroud...'
+    #-------------------------------------------------------------------------------
+    print '         Evaluating background...'
     img_background = np.zeros((SetData.DIM_X, SetData.DIM_Y), np.float64)
 
     # Evaluate the background of the images as the mean over the whole set
     for i in img_collection_DOWN:
-        # Convert all images to float, range -1 to 1, to avoid dangerous overflows
         img_background += i
 
     img_background /= len(img_collection_DOWN)
@@ -126,13 +135,13 @@ for index, set in enumerate(SetData.num_measures):
     # Substract from each image the background
     for i in img_collection_DOWN:
         i -= img_background
-    print "         Background removed!"
+    print "         Background subtracted!"
 
     #-------------------------------------------------------------------------------
     img_collection_DOWN = np.asarray(img_collection_DOWN)
 
-    print "         Spacial smoothing..."
-    # Now we need to reduce the noise from the images by performing a spatial smoothing
+    print "         Spatial smoothing..."
+    # Now we reduce the noise from the images by performing a spatial smoothing
     img_collection_reduced = []
     img_collection_reduced = measure.block_reduce(img_collection_DOWN, (1, SetData.MACRO_PIXEL_DIM, SetData.MACRO_PIXEL_DIM), np.mean)
     img_background = measure.block_reduce(img_background, (SetData.MACRO_PIXEL_DIM, SetData.MACRO_PIXEL_DIM), np.mean)
@@ -141,23 +150,27 @@ for index, set in enumerate(SetData.num_measures):
     Back_2D = np.reshape(img_background, (SetData.DIM_X/SetData.MACRO_PIXEL_DIM,SetData.DIM_Y/SetData.MACRO_PIXEL_DIM), order='C')
     del img_collection_reduced
     del img_background
-    print "         Images reduced"
+    print "         Images reduced!"
 
     #-------------------------------------------------------------------------------
 
-    print "         Saveing images..."
+    print "         Saving images..."
     #Save initialized images
-    path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/'
+    path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/'
     if os.path.exists(path) == False:
         os.makedirs(path)
-    name = path + 'initialized_images_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
-    np.savetxt(name, Images_2D, delimiter = ' ', header ='#numpy 2d array containing image reduced in sequences', newline='\n')
+    name = path + 'initialized_images_t' + SET_NUMBER + '.txt'    
+    #name = path + 'initialized_images_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
+    np.savetxt(name, Images_2D, delimiter = ' ', header ='#numpy 2d array containing the sequence of reduced images', newline='\n')
     #Save background
-    name = path + 'background_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
+    name = path + 'background_t' + SET_NUMBER + '.txt'
+    #name = path + 'background_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
     np.savetxt( name, Back_2D, delimiter = ' ', header ='#numpy 2d array containing image background', newline='\n')
 
     #return Images_2D, Back_2D
 
 print 'Image initialization completed!'
 
+plt.show(block=False)
+raw_input("Press ENTER to exit and close all the Python windows")
 #return 0
