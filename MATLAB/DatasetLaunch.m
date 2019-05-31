@@ -1,13 +1,14 @@
 
+%% --- load data settings
 clear
-BaseDir = '../..';
-
-ScriptDir = [BaseDir '/SRC/MATLAB/'];
-cd(ScriptDir)
+%BaseDir = '../..';
+%ScriptDir = [BaseDir '/SRC/MATLAB/'];
+ScriptDir = pwd;
+%cd(ScriptDir)
 %import data
 file = readtable('SetData.txt', 'delimiter', '\n');
 
-%search for interesting lines
+%% --- search for interesting lines
 for i=1:height(file)
     string = file{i,:};
     if startsWith(string, 'num_measures')
@@ -17,10 +18,10 @@ for i=1:height(file)
         line_type = string{1};
     end
     if startsWith(string, 'DIM_X')
-        width = string{1};
+        dimX = string{1};
     end
     if startsWith(string, 'DIM_Y')
-        height = string{1};
+        dimY = string{1};
     end
     if startsWith(string, 'MACRO_PIXEL_DIM')
         macro_dim = string{1};
@@ -31,20 +32,27 @@ for i=1:height(file)
     if startsWith(string, 'PIXEL_SIZE')
         pixel_size = string{1};
     end
-end
-
-%selecting parameters
-for idx = 1:length(pixel_size)
-    if pixel_size(idx) == '='
-        pixel_size(idx)
-        inizio = idx+1;
+    if startsWith(string, 'ANALYSIS_DIR')
+        analysis_dir = string{1};
     end
 end
-fine = idx;
+
+%% --- load parameters
+%% PIXEL_SIZE
+for idx = 1:length(pixel_size)
+    if pixel_size(idx) == '='
+        pixel_size(idx);
+        inizio = idx+1;
+    end
+    if pixel_size(idx) == '#'
+        fine = idx-1;
+    end
+end
 pixel_size = pixel_size(inizio:fine);
 pixel_size = strrep(pixel_size, ' ', '');
 pixel_size = str2num(pixel_size);
 
+%% MACROPIXEL_DIM
 for idx = 1:length(macro_dim)
     if macro_dim(idx) == '='
         inizio = idx+1;
@@ -54,8 +62,8 @@ fine = idx;
 macro_dim = macro_dim(inizio:fine);
 macro_dim = strrep(macro_dim, ' ', '');
 macro_dim = str2num(macro_dim);
-macro_dim;
 
+%% SAMPLING_TIME
 for idx = 1:length(sampling_time)
     if sampling_time(idx) == '='
         inizio = idx+1;
@@ -65,32 +73,31 @@ fine = idx;
 sampling_time = sampling_time(inizio:fine);
 sampling_time = strrep(sampling_time, ' ', '');
 sampling_time = str2num(sampling_time);
-sampling_time;
 
-
-for idx = 1:length(width)
-    if width(idx) == '='
+%% DIM_X and DIM_Y
+for idx = 1:length(dimX)
+    if dimX(idx) == '='
         inizio = idx+1;
     end
 end
 fine = idx;
-width = width(inizio:fine);
-width = strrep(width, ' ', '');
-width = str2num(width);
-width = width / macro_dim;
+dimX = dimX(inizio:fine);
+dimX = strrep(dimX, ' ', '');
+dimX = str2num(dimX);
+dimX = dimX / macro_dim;
 
-for idx = 1:length(height)
-    if height(idx) == '='
+for idx = 1:length(dimY)
+    if dimY(idx) == '='
         inizio = idx+1;
     end
 end
 fine = idx;
-height = height(inizio:fine);
-height = strrep(height, ' ', '');
-height = str2num(height);
-height = height / macro_dim;
+dimY = dimY(inizio:fine);
+dimY = strrep(dimY, ' ', '');
+dimY = str2num(dimY);
+dimY = dimY / macro_dim;
 
-%selecting IMG_TYPE
+%% DIM_X and DIM_Y
 flag = 0;
 for idx=1:length(line_type)
     if line_type(idx) == "'"
@@ -104,7 +111,7 @@ for idx=1:length(line_type)
 end
 IMG_TYPE = line_type(inizio:fine);
 
-%selecting num_measures
+%% NUM_MEASURES
 fine = 0;
 for idx=1:length(line_measures)
     if line_measures(idx) == ']'
@@ -121,15 +128,24 @@ num_measures = line_measures(inizio:fine);
 num_measures = strrep(num_measures, ',', ' ');
 num_measures= str2num(num_measures);
 
+%% ANALYSIS_DIR
+for idx = 1:length(analysis_dir)
+    if analysis_dir(idx) == '='
+        inizio = idx+3;
+    end
+end
+fine = idx-1;
+analysis_dir = analysis_dir(inizio:fine);
+analysis_dir = strrep(analysis_dir, ' ', '');
 
-AnalysisDir = [BaseDir '/ANALYSIS/' IMG_TYPE '/'];
+%%
+AnalysisDir = [analysis_dir IMG_TYPE];
 
 FileName = 'Spontaneous_RH';
 
-cd(ScriptDir);
+%cd(ScriptDir);
 
 SetNum = length(num_measures);
-
 topo = IMG_TYPE;
 TopoDir = [AnalysisDir];
 
@@ -191,8 +207,9 @@ for num = num_measures
         min_time = reshape(min_time, [1,length(min_time)]);
         DataDir = [TempDir strcat('[', num2str(lowcut(idx), strcat('%.',num2str(low_precision{idx}),'f')), '_', num2str(highcut(idx), strcat('%.', num2str(high_precision{idx}), 'f')), ']Hz/')]
         %DataDir = [TempDir strcat('[', num2str(lowcut(idx)), '_', num2str(highcut(idx)), ']Hz/')];
-        cd(strcat('../../', ScriptDir));
-        WaveHuntTimes;
+        %cd(strcat('../../', ScriptDir));
+        cd(ScriptDir)
+        WaveHuntTimes; % -- from Trigger Times to Wave Collection
         cd(TempDir)
     end
     cd('../')
