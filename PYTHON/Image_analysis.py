@@ -10,30 +10,30 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
+import json
+import os.path
+from joblib import Parallel, delayed
+
+#import psutil
+
 import skimage
 from skimage import data, io, filters, measure
 from skimage import img_as_float, img_as_uint
 
-#from Initialization_images import drawShape, Make_a_rectangoular_crop, Find_a_mask, Apply_a_mask, Inside_outside_check
 from frequency_analysis import bandpass_filter, multiplot
 from new_min_analysis import min_analysis, min_to_matlab, plot_wave
-#from minimum_analysis import find_minimum, min_interpol, parab_fit, min_analysis
-import json
-import os.path
-from joblib import Parallel, delayed
-#import psutil
 
 import SetData
 
-
 #------------------------------FUNCTION DEFINITION-----------------------------
 def Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path, lowcut = None, highcut = None, show = True, save = False):
-    print '     plotting spectrum...'
+    print '     Plotting the spectrum...'
 
     plt.rc('text', usetex = True)
     plt.rc('font', family = 'serif')
     plt.plot(img_spectrum_freq[1:SetData.spectrum_time]*1000, (spectrum_mean[1:SetData.spectrum_time, 0, 0].real)**2, linewidth=0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + str(set)
+    #name_fig = SetData.IMG_TYPE + '_' + str(set)
+    name_fig = 'plot'
     title_fig = 'Image_spectrum'
     #plt.suptitle(name_fig, fontsize=16)
 
@@ -55,6 +55,7 @@ def Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path, lowcut = None
     plt.ylabel(r'$\mathcal{A}$')
     plt.xlabel(r'$\nu (Hz)$')
     name_saved = path + title_fig + 'Log_' + name_fig + '.png'
+    print 'Spectrum_plotting: name_saved', name_saved	
     if show:
         plt.show()
     if save:
@@ -65,7 +66,8 @@ def Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path, lowcut = None
     plt.rc('text', usetex = True)
     plt.rc('font', family = 'serif')
     plt.plot(img_spectrum_freq[1:SetData.spectrum_time]*1000, (spectrum_mean[1:SetData.spectrum_time, 0, 0].real)**2, linewidth=0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + str(set)
+    #name_fig = SetData.IMG_TYPE + '_' + str(set)
+    name_fig = 'plot'
     title_fig = 'Image_spectrum'
 
     if lowcut is not None and highcut is None:
@@ -99,10 +101,10 @@ def Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path, lowcut = None
         plt.savefig(name_saved)
 
     plt.close()
-    print '     spectrum plotted!'
-
+    print '     Spectrum plotted!'
+#------------------------------------------------------------
 def RawSignal_plotting(img_coll_norm, set, lowcut, highcut, path):
-    print '     plotting row signal...'
+    print '     Plotting the raw signal...'
     to_plot = np.zeros((SetData.TIME_SAMPLES))
     for i in range(0, SetData.TIME_SAMPLES):
         to_plot[i] = img_coll_norm[i, SetData.PIXEL_SAMPLE_x, SetData.PIXEL_SAMPLE_y]
@@ -110,7 +112,8 @@ def RawSignal_plotting(img_coll_norm, set, lowcut, highcut, path):
     plt.rc('font', family = 'serif')
     x = np.arange(0, SetData.TIME_SAMPLES*SetData.SAMPLING_TIME, SetData.SAMPLING_TIME)
     plt.plot(x,to_plot, linewidth = 0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + str(set)
+    #name_fig = SetData.IMG_TYPE + '_' + str(set)
+    name_fig = 'plot'
     title_fig = 'Raw_Signal'
     plt.title('Filter:' + str(lowcut) + '-' + str(highcut) +'Hz')
     plt.ylabel(r'$\frac{\mathcal{F}}{\mathcal{F}_{max}}$')
@@ -120,9 +123,9 @@ def RawSignal_plotting(img_coll_norm, set, lowcut, highcut, path):
     plt.close()
 
     print '     Raw signal plotted!'
-
+#------------------------------------------------------------
 def CleanSignal_plotting(clean_signals_norm, set, lowcut, highcut, path):
-    print '     Plotting cleaned signal...'
+    print '     Plotting the cleaned signal...'
 
     to_plot = np.zeros((SetData.TIME_SAMPLES))
     for i in range(0, SetData.TIME_SAMPLES):
@@ -133,7 +136,8 @@ def CleanSignal_plotting(clean_signals_norm, set, lowcut, highcut, path):
 
     x = np.arange(0, SetData.TIME_SAMPLES*SetData.SAMPLING_TIME, SetData.SAMPLING_TIME)
     plt.plot(x, to_plot, linewidth = 0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + str(set)
+    #name_fig = SetData.IMG_TYPE + '_' + str(set)
+    name_fig = 'plot'
     title_fig = 'Cleaned_signal'
     plt.title('Filter:' + str(lowcut) + '-' + str(highcut) +'Hz')
     #plt.suptitle(name_fig, fontsize=16)
@@ -145,12 +149,14 @@ def CleanSignal_plotting(clean_signals_norm, set, lowcut, highcut, path):
     plt.ylabel(r'$\frac{\mathcal{F}}{\mathcal{F}_{max}}$')
     plt.xlabel('t(s)')
     name_saved = path + title_fig + '_' + name_fig + '.png'
+    print 'CleanSignal_plotting: name_saved', name_saved
+
     plt.savefig(name_saved)
     #plt.show()
     plt.close()
 
     print '     Cleaned Signal plotted!'
-
+#------------------------------------------------------------
 def saveParams(filename, params):
     with open(filename, "w") as file:
         for i, pix in enumerate(params):
@@ -162,7 +168,7 @@ def saveParams(filename, params):
             file.write("\n")
 
     file.close()
-
+#------------------------------------------------------------
 def saveMin(filename, min_time):
     with open(filename, "w") as file:
         for i, pix in enumerate(min_time):
@@ -175,11 +181,11 @@ def saveMin(filename, min_time):
             file.write("\n")
 
     file.close()
-
+#------------------------------------------------------------
 def find_nearest(array, value):
     array = np.asarray(array)
     return (np.abs(array - value)).argmin()
-
+#------------------------------------------------------------
 def getZone():
     zone_ans = True;
     print ("Which ZONE does this band belong to?")
@@ -205,7 +211,7 @@ def getZone():
         '''
         zone_ans=False
     return zone
-
+#------------------------------------------------------------
 def safeInput(msg):
     ans = True
     while ans:
@@ -220,7 +226,7 @@ def safeInput(msg):
             print ("Invalid input. Please re-insert.")
 
     return temp
-
+#------------------------------------------------------------
 def safeRawInput(msg, valid_ans = None):
     ans = True
     while ans:
@@ -239,9 +245,8 @@ def safeRawInput(msg, valid_ans = None):
         except NameError:
             print ("Invalid input. Please re-insert.")
 
-
     return temp
-
+#------------------------------------------------------------
 print('---------------------------Image_analysis-------------------------------')
 
 DIM_X_REDUCED = SetData.DIM_X/SetData.MACRO_PIXEL_DIM
@@ -260,13 +265,15 @@ def Spectrum_evaluation(set):
     SET_NUMBER = str(set)
     print 'Set number = ', SET_NUMBER
 
-    #-----------------------------IMAGE LOADING---------------------------------
+    #-----------------------------IMAGE SET LOADING---------------------------------
+    # In this section, images are loaded from a txt file
+    filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/' + 'initialized_images_t' + SET_NUMBER + '.txt'
+    #filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/' + 'initialized_images_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
+    print 'input filename: ', filename
 
-    #in this section, images are loaded from a txt file
-    filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/' + 'initialized_images_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
-    #check the file does exists
+    # check the file existence
     if os.path.isfile(filename)== False:
-        print('ERROR: initialized_images does not exists' )
+        print('ERROR: initialized_images does not exist' )
         sys.exit(-1)
 
     #print '     Loading data...'
@@ -274,15 +281,16 @@ def Spectrum_evaluation(set):
     img_collection_reduced = np.reshape(Images2D, ((SetData.TIME_SAMPLES+1, DIM_X_REDUCED, DIM_Y_REDUCED)),order='C')
     del Images2D
 
+    # ad hoc settings for specific datasets (isoflurane)
     if SetData.IMG_TYPE == 'ISO_180322':
         img_collection_reduced[:,29,10] = np.nan
         img_collection_reduced[:,42,22] = np.nan
         img_collection_reduced[:,26,15] = np.nan
+
     #plt.matshow(img_collection_reduced[0])
     #plt.show()
 
     #filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/' + 'background_' + SetData.IMG_TYPE + '_t' + SET_NUMBER + '.txt'
-
     #Background2D = np.loadtxt(filename)
     #img_background = np.reshape(Background2D, ((DIM_X_REDUCED, DIM_Y_REDUCED)),order='C')
     #img_collection_reduced = img_collection_reduced - img_background
@@ -290,33 +298,43 @@ def Spectrum_evaluation(set):
 
     #------------------------------SIGNAL SPECTRUM------------------------------
 
-    path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/'
+    path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/'
+    print 'path = ', path
 
-    #print '     evaluateing spectrum...'
+    #print '     Evaluating the spectrum...'
 
     img_coll_norm = np.zeros((SetData.TIME_SAMPLES, DIM_X_REDUCED, DIM_Y_REDUCED))
-    #print 'sono qui'
+
+    # *** HERE - NORMALIZATION of the dataset with the maximum value ***
     img_coll_norm = img_collection_reduced/np.nanmax(img_collection_reduced)
+    # The fluctuations of the Ca signal are normalized to the max fluorescence of each pixel,
+    # in contrast to the standard normalization to the baseline or median of the signal.
+    # [almost by definition the max fluorescence is more affected by noise than any reasonable estimate of the signal baseline]
+    # --> REPLACE the normalization factor with the MEDIAN
+    #img_coll_norm = img_collection_reduced/np.nanmedian(img_collection_reduced)
+
     del img_collection_reduced
 
-    #print 'ora qui'
-    # Next we take the fourier transformation of the input along the temporal axis
+    # Next we compute the Fourier transform of the input along the temporal axis
     img_spectrum = np.fft.rfftn(img_coll_norm, axes = [0])
-    #print 'quiiii'
     img_spectrum_freq = np.fft.rfftfreq(img_coll_norm.shape[0], d = 1. / SetData.SAMPLING_TIME)
-    #print 'ops'
+   
     # We take the mean of the spectrum
     spectrum_mean = measure.block_reduce(img_spectrum, (1, np.size(img_coll_norm,1), np.size(img_coll_norm,2)), np.nanmean)
+    #print 'spectrum_mean size: ', size(spectrum_mean)
+    #print 'img_spectrum size: ', size(img_spectrum)
+    #print spectrum_mean
     del img_spectrum
 
     #print '     Spectrum evaluated!'
 
-    #------------save the total spectrum
-    #print '     plotting the total spectrum...'
+    #------------ Save the total spectrum
+    #print '     Plotting the total spectrum...'
     plt.rc('text', usetex = True)
     plt.rc('font', family = 'serif')
     plt.plot(img_spectrum_freq[1:SetData.spectrum_time]*1000, (spectrum_mean[1:SetData.spectrum_time, 0, 0].real)**2, linewidth=0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + 't' + str(set)
+    #name_fig = SetData.IMG_TYPE + 't' + str(set)
+    name_fig = 'mean-across-pixels'
     title_fig = 'ImageSpectrum'
     plt.title(title_fig+'LogScale')
     plt.yscale(value='log')
@@ -327,11 +345,11 @@ def Spectrum_evaluation(set):
     plt.savefig(name_saved)
     plt.close()
 
-
     plt.rc('text', usetex = True)
     plt.rc('font', family = 'serif')
     plt.plot(img_spectrum_freq[1:SetData.spectrum_time]*1000, (spectrum_mean[1:SetData.spectrum_time, 0, 0].real)**2, linewidth=0.45, c = SetData.color)
-    name_fig = SetData.IMG_TYPE + '_' + str(set)
+    #name_fig = SetData.IMG_TYPE + '_' + str(set)
+    name_fig = 'mean-across-pixels'
     title_fig = 'ImageSpectrum'
     plt.title(title_fig)
     plt.ylabel(r'$\mathcal{A}$')
@@ -347,14 +365,15 @@ def Spectrum_evaluation(set):
     del img_coll_norm
 
     return returning
+#------------------------------------------------------------
 
-
-print 'Loading and evaluateing spectrum...'
+print 'Loading pre-processed data and evaluating the frequency spectrum...'
 spectrum_mean_measures = []
 img_spectrum_freq_measures = []
 img_coll_norm_measures = []
 returning = []
 returning.extend(Parallel(n_jobs=SetData.nprocs)(delayed(Spectrum_evaluation)(set) for set in SetData.num_measures))
+#returning.extend((Spectrum_evaluation)(set) for set in SetData.num_measures) # NO PARALLE EXEC
 #print 'Ret:' + str(len(returning))
 
 for i in range(0, len(SetData.num_measures)):
@@ -387,7 +406,7 @@ for index, set in enumerate(SetData.num_measures):
 
     #-----------------------------------------------Lowcut and highcut selection
 
-    #cycle on the spectrum zones of interests
+    # cycle over the zones of interest of the spectrum
     if SetData.lowcut[index] is None:
         answer = 'Y'
         cont = 0
@@ -396,7 +415,7 @@ for index, set in enumerate(SetData.num_measures):
         zone_set = []
 
         while answer == 'Y':
-            #plot of the total spectrum
+            # plot of the total spectrum
             path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/'
             Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path)
 
@@ -410,7 +429,7 @@ for index, set in enumerate(SetData.num_measures):
                 if (lowcut >= highcut):
                     ans = True
                     print ("WARNING: Lowcut = " + str(lowcut) + " Highcut = " + str(highcut))
-                    print ("Lowcut is greater than highcut. Please re-insert both values.")
+                    print ("Lowcut is larger than highcut. Please re-insert both values.")
 
             zone = getZone()
 
@@ -419,18 +438,20 @@ for index, set in enumerate(SetData.num_measures):
             zone_set.append(zone)
             #lowcut_set[index][cont] = lowcut
 
-            #path were things are saved
-            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut) + ']Hz/'
+            # path were things are saved
+            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut) + ']Hz/'
             if os.path.exists(path)== False:
                 os.makedirs(path)
-            #plotting...
+            # plotting...
             Spectrum_plotting(img_spectrum_freq, spectrum_mean, set, path, lowcut, highcut, show = False, save = True)
             #del spectrum_mean
             #del spectrum_mean_measures[index]
 
             RawSignal_plotting(img_coll_norm, set, lowcut, highcut, path)
-            #clean signal evaluation and plotting
-            print '     Cleaning signal...'
+
+            #------------------------------- BANDPASS FILTER ---------------------------
+            # Clean the signal through a bandpass-pass filter
+            print '     Filtering the signal...'
 
             #clean_signals = bandpass_filter(img_collection_reduced, SetData.order, SetData.fs, lowcut, highcut)
             clean_signals_norm = bandpass_filter(img_coll_norm, SetData.order, SetData.fs, lowcut, highcut)
@@ -438,11 +459,11 @@ for index, set in enumerate(SetData.num_measures):
             CleanSignal_plotting(clean_signals_norm, set, lowcut, highcut, path)
             #del img_coll_norm
 
-            #---------------------------MINIMUM INTERPOLATION-------------------
-
-            #in this section, minimum will be found and interpolated by a quadratic function
-            #Then, minimums will be saved in a matlab and/or txt file
-            #Identify min and max values
+            #--------------------------- INTERPOLATION of the MINIMA -------------------
+            # In this section, the minima are found and interpolated with a quadratic function
+            # Then, minima are saved in a matlab and/or txt file
+            
+            # Identify min and max values
             min_analysis1 = min_analysis(clean_signals_norm, SetData.points, SetData.t_min, SetData.t_max)
 
             #Save file in MATLAB
@@ -452,9 +473,9 @@ for index, set in enumerate(SetData.num_measures):
 
             #SAVE FILE TXT
             #print 'Do you want to save the minima collection in a txt file? Y/N'
-            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
             saveMin(name, min_analysis1['min_time'])
-            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
             #np.savetxt(name, min_analysis1['params'], fmt = '%s', delimiter = ' ')
             saveParams(name, min_analysis1['params'])
 
@@ -468,13 +489,15 @@ for index, set in enumerate(SetData.num_measures):
         del spectrum_mean
         del img_spectrum_freq
 
+    #----- else... passband is specified in the SetData.py
     else: #if the user already know what filter parameters should be used
         lowcut_set = []
         highcut_set = []
         zone_set = []
 
         for t in range(0, len(SetData.lowcut[index])):
-            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/'
+            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/'
+	    print 'path HERE: ', path
             #Highcut and lowcut setting
             if not SetData.lowcut[index][t] is None:
                 lowcut = SetData.lowcut[index][t]
@@ -535,7 +558,7 @@ for index, set in enumerate(SetData.num_measures):
             #lowcut_set = np.asarray(lowcut_set)
             #highcut_set = np.asarray(highcut_set)
             #path were things are saved
-            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut) + ']Hz/'
+            path = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut) + ']Hz/'
             if os.path.exists(path)== False:
                 os.makedirs(path)
 
@@ -545,8 +568,9 @@ for index, set in enumerate(SetData.num_measures):
 
             RawSignal_plotting(img_coll_norm, set, lowcut, highcut, path)
 
-            #----------Clean the signal through a bandpass-pass filter
-            print '     Cleaning signal...'
+            #------------------------------- BANDPASS FILTER ---------------------------
+            # Clean the signal through a bandpass-pass filter
+            print '     Filtering the signal...'
 
             #clean_signals = bandpass_filter(img_collection_reduced, SetData.order, SetData.fs, lowcut, highcut)
             clean_signals_norm = bandpass_filter(img_coll_norm, SetData.order, SetData.fs, lowcut, highcut)
@@ -554,12 +578,11 @@ for index, set in enumerate(SetData.num_measures):
 
             CleanSignal_plotting(clean_signals_norm, set, lowcut, highcut, path)
 
-            #---------------------------MINIMUM INTERPOLATION-------------------
+            #--------------------------- INTERPOLATION of the MINIMA -------------------
+            # In this section, minima are found and interpolated with a quadratic function
+            # Then, minimuma are saved in a matlab and/or txt file
 
-            #in this section, minimum will be found and interpolated by a quadratic function
-            #Then, minimums will be saved in a matlab and/or txt file
-
-            #Identify min and max values
+            # Identify min and max values
             min_analysis1 = min_analysis(clean_signals_norm, SetData.points, SetData.t_min, SetData.t_max)
 
             #Save file in MATLAB
@@ -573,9 +596,12 @@ for index, set in enumerate(SetData.num_measures):
             #SAVE FILE TXT
             #print 'Do you want to save the minima collection in a txt file? Y/N'
 
-            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+            #name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'min_points.txt'
             saveMin(name, min_analysis1['min_time'])
-            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+
+            #name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params_'+ SetData.IMG_TYPE + '_' + str(set) + '[' + str(lowcut) + '_' + str(highcut) + ']' + '.txt'
+            name = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/[' + str(lowcut) + '_' + str(highcut)  + ']Hz/' + 'params.txt'
             #np.savetxt(name, min_analysis1['params'], fmt = '%s', delimiter = ' ')
             saveParams(name, min_analysis1['params'])
 
@@ -587,8 +613,9 @@ for index, set in enumerate(SetData.num_measures):
         del img_spectrum_freq
 
 
-    #here we save lowcut and highcut im a txt file
-    filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + '/t' + SET_NUMBER + '/' + 'low_high.txt'
+    # Here we save lowcut and highcut im a txt file
+    filename = SetData.ANALYSIS_DIR + SetData.IMG_TYPE + 't' + SET_NUMBER + '/' + 'low_high.txt'
+    print 'output filename for passband: ', filename
 
     for lc in lowcut_tot:
         low = ""
@@ -624,3 +651,5 @@ for index, set in enumerate(SetData.num_measures):
 #================================================================================#
 #print psutil.cpu_count()
 #psutil.virtual_memory()
+
+print 'Image analysis completed!'
