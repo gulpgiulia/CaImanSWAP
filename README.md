@@ -14,16 +14,16 @@ The Human Brain Project HBP has received funding from the European Union's Horiz
 
 Except for where differently specified, the code is written in Python2.7
 
-#ATTENTION: To correctly execute the program, the user should not modify the directory structure that the code automatically generates to process the data.
+ATTENTION: To correctly execute the program, the user should not modify the directory structure that the code automatically generates to process the data.
 
 The program is made up of 4 phases:
-  1) Image_initialization.py: In this phase, the raw images to be analyzed are acquired as an input and translated in a matrix of floats. In order to select only the effective area where the signal of interest comes from, an optimal mask is constructed and applied to the raw data. Pixel-by-pixel background subtraction follows and a spatial smoothing can be made to further reduce the noise. At the end of this phase, '.txt' files with numpy arrays representing the processed images are generated. Usually, the image_initalization phase is unique for each set of raw data, resulting in a set of processed data that can be used as a starting point for different analysis trials (e.g. inspecting different regions of the spectrum, or adopting different filter families, see next).  
+  1) **Image_initialization.py**: In this phase, the raw images to be analyzed are acquired as an input and translated in a matrix of floats. In order to select only the effective area where the signal of interest comes from, an optimal mask is constructed and applied to the raw data. Pixel-by-pixel background subtraction follows and a spatial smoothing can be made to further reduce the noise. At the end of this phase, '.txt' files with numpy arrays representing the processed images are generated. Usually, the image_initalization phase is unique for each set of raw data, resulting in a set of processed data that can be used as a starting point for different analysis trials (e.g. inspecting different regions of the spectrum, or adopting different filter families, see next).  
  
-  2) Image_analysis.py: In this phase, the frequency spectrum of an image set is computed. The user can identify one or more regions of interests, that are analyzed separately to investigate the features of the delta frequency band. Once these regions are declared, they are selected via a band-pass Butterworth filter. The minima of the filtered signal (for each selected frequency band) are identified, and a parabolic interpolation is computed for each minimum. The minima are interpreted as the onset of the down-to-up transition, induced by the passage of a slow wave across the cortex. The parabolic interpolation is adopted to estimate the time of the minimum (i.e. the time of transition) with greater precision than the one imposed by the sampling frequency. The parabolic fit parameters are stored for each minimum in a proper data structure (collection of minima for each pixel).
+  2) **Image_analysis.py**: In this phase, the frequency spectrum of an image set is computed. The user can identify one or more regions of interests, that are analyzed separately to investigate the features of the delta frequency band. Once these regions are declared, they are selected via a band-pass Butterworth filter. The minima of the filtered signal (for each selected frequency band) are identified, and a parabolic interpolation is computed for each minimum. The minima are interpreted as the onset of the down-to-up transition, induced by the passage of a slow wave across the cortex. The parabolic interpolation is adopted to estimate the time of the minimum (i.e. the time of transition) with greater precision than the one imposed by the sampling frequency. The parabolic fit parameters are stored for each minimum in a proper data structure (collection of minima for each pixel).
 
-  3) DatasetLaunch.mat (implemented in MATLAB starting from a code written by Giulia De Bonis and Maurizio Mattia): With the collection of minima as an input, the starting and ending times of each wave are identified; the pair of files 'Begin_Time.txt' and 'End_time.txt' is produced for each dataset (for each spectral region of interest), resulting in a collection of waves.
+  3) **DatasetLaunch.mat** (implemented in MATLAB starting from a code written by Giulia De Bonis and Maurizio Mattia): With the collection of minima as an input, the starting and ending times of each wave are identified; the pair of files 'Begin_Time.txt' and 'End_time.txt' is produced for each dataset (for each spectral region of interest), resulting in a collection of waves.
 
-  4) Data_analysis.py: In this phase, the following measures are taken on the identified collection of waves: excitability of the neuronal population (represented both as a distribution and as a cortical map), speed of waves and origin of waves; results are saved in the RESULTS directory.
+  4) **Data_analysis.py**: In this phase, the following measures are taken on the identified collection of waves: excitability of the neuronal population (represented both as a distribution and as a cortical map), speed of waves and origin of waves; results are saved in the RESULTS directory.
 
 -------------------------- PROGRAM USAGE --------------------------------
 
@@ -53,14 +53,14 @@ NOTE: the names of variables in this script are the actual names used in the cod
 
 **EXAMPLE EXECUTION (Linux/IOS)**
 
-cd PYTHON
-<edit SetData.py>
-python2 Image_initialization.py
-python2 Image_analysis.py
-cp SetData.py ../MATLAB/SetData.txt
-cd ..
-cd MATLAB
- /your/path/to/bin/matlab -nodesktop -nosplash -r "run ('DatasetLaunch.m')" 
-cd ..
-cd PYTHON
-python2 Data_analysis.py
+    cd PYTHON
+    <edit SetData.py>
+    python2 Image_initialization.py
+    python2 Image_analysis.py
+    cp SetData.py ../MATLAB/SetData.txt
+    cd ..
+    cd MATLAB
+    /your/path/to/bin/matlab -nodesktop -nosplash -r "run ('DatasetLaunch.m')" 
+    cd ..
+    cd PYTHON
+    python2 Data_analysis.py
