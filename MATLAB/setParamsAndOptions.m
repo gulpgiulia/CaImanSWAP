@@ -753,8 +753,8 @@ evoked=0;
 % %%Geometry only
 arrayMask = [];
 
-h = height;
-w = width;
+h = dimY;
+w = dimX;
 
 for (i=1:1:(h*w)) 
     
