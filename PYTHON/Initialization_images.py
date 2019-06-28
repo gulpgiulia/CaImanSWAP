@@ -1,6 +1,6 @@
 
 #-------------------------------FUNCTION DEFINITION-----------------------------
-def Make_a_rectangoular_crop(img_collection, topx, topy, bottomx, bottomy):
+def Make_a_rectangular_crop(img_collection, topx, topy, bottomx, bottomy):
 
     #import matplotlib.pyplot as plt
     from PIL import Image
@@ -109,7 +109,7 @@ def Find_Contours(img, Contour_Limit):
             appoggio_ver = 1
     if (appoggio_down == 1 and appoggio_dx == 1) or (appoggio_up == 1 and appoggio_sx == 1) or (appoggio_down== 1 and appoggio_sx == 1) or (appoggio_up == 1 and appoggio_dx == 1):
         snd = True
-    print 'snd =', snd
+    print('snd =', snd)
 
     #print snd
 
@@ -126,7 +126,7 @@ def Find_Contours(img, Contour_Limit):
         for i in range(0, len(contour_fake[snd_index])):
             contour[0] = np.append(contour[0], [contour_fake[snd_index][i]], axis = 0)
 
-    print 'Here (Figure 2) there are contours found with Contour_Limit = %s' % str(Contour_Limit)
+    print('Here (Figure 2) there are contours found with Contour_Limit = {}'.format(Contour_Limit))
 
     return contour
 
