@@ -81,7 +81,7 @@ fs = 25.00 #[Hz]
 # Here we define the number of pixels closest in time to the wave born time, that are consdered as part of the wave birth itself
 k_cluster = 5
 t_min = 5
-t_max = 995
+t_max = 245
 
 ### SamplePixel (far from bounderies and blood vessels) for illustrating results:
 #PIXEL_SAMPLE_x: x-coordinate of the SamplePixel (already reduced!)
